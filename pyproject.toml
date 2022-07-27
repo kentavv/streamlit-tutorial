@@ -7,7 +7,7 @@ authors = ["kent"]
 [tool.poetry.dependencies]
 python = ">=3.8"
 numpy = "*"
-scipy = "*"
+scipy = ">=1.8.1"
 
 [tool.poetry.dev-dependencies]
 pytest = "^3.9"
