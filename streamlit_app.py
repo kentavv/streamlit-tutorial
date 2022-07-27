@@ -1,10 +1,11 @@
 import numpy as np
 import streamlit as st
 import scipy
-from scipy.special import jv
+# from scipy.special import jv
 import matplotlib.pyplot as plt
 
 st.title('Streamlit Experiments')
+st.write(scipy.__version__)
 
 arr = np.random.normal(1, 1, size=100)
 fig, ax = plt.subplots()
@@ -32,17 +33,17 @@ st.latex(r'''
      a \left(\frac{1-r^{n}}{1-r}\right)
      ''')
 
-fig, ax = plt.subplots()
-
-x = np.linspace(-10, 10, 1000)
-for i in range(0, 2 + 1):
-    plt.plot(x, jv(i, x), label=f'$J_{i}(x)$')
-st.pyplot(fig)
-
-
-fig, ax = plt.subplots()
-slider = st.slider('J', min_value=-4, max_value=4, step=1) #, on_change=gen)
-x = np.linspace(-20, 20, 1000)
-i = slider
-plt.plot(x, jv(i, x), label=f'$J_{i}(x)$')
-st.pyplot(fig)
+# fig, ax = plt.subplots()
+#
+# x = np.linspace(-10, 10, 1000)
+# for i in range(0, 2 + 1):
+#     plt.plot(x, jv(i, x), label=f'$J_{i}(x)$')
+# st.pyplot(fig)
+#
+#
+# fig, ax = plt.subplots()
+# slider = st.slider('J', min_value=-4, max_value=4, step=1) #, on_change=gen)
+# x = np.linspace(-20, 20, 1000)
+# i = slider
+# plt.plot(x, jv(i, x), label=f'$J_{i}(x)$')
+# st.pyplot(fig)
