@@ -5,7 +5,7 @@ description = ""
 authors = ["kent"]
 
 [tool.poetry.dependencies]
-python = "*"
+python = ">=3.8"
 numpy = "*"
 scipy = "*"
 
