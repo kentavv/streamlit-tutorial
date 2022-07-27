@@ -4,3 +4,5 @@ import streamlit as st
 st.title('Yo')
 st.write(np.zeros((3,3)))
 
+img = np.random((100, 100), dtype=np.uint8)
+st.image(img, caption='Random image', output_format='PNG')
