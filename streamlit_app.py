@@ -256,7 +256,8 @@ def gen_network():
 def gen_shell():
     cmds = ['ls', 'pwd', 'df']
     for cmd in cmds:
-        st.write(cmd, ':', os.popen(cmd).read())
+        st.header(cmd)
+        st.text(os.popen(cmd).read())
 
 
 tabs = [("Histogram", gen_histogram),
