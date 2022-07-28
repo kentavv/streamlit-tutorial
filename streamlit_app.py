@@ -21,8 +21,22 @@ with st.sidebar:
     # n = st.number_input('Samples', min_value=10, value=100, step=100)
     # mu = st.number_input('Mu', value=10.)
     # std = st.number_input('Std dev', min_value=.01, value=2.)
+
+    with open('Pipfile') as f:
+        st.download_button("Download Pipfile", f, file_name='Pipfile')
+    with open('streamlit_app.py') as f:
+        st.download_button("Download Source", f, file_name='streamlit_app.py')
+
     st.button("Regenerate All", key='Regenerate All')
 
+    if "do_once" not in st.session_state:
+        st.session_state.do_once = 0
+        st.write(st.session_state)
+    if st.session_state.do_once == 0:
+        st.snow()
+        st.session_state.do_once = st.session_state.do_once + 1
+        st.write('redoing', st.session_state.do_once)
+        st.write(st.session_state)
 
 def gen_histogram():
     cols = st.columns(3)
