@@ -5,6 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import streamlit as st
 import scipy
+import graphviz as graphviz
 
 from scipy.special import jv
 from scipy.stats import norm
@@ -17,7 +18,8 @@ st.title('Streamlit Experiments')
 with st.sidebar:
     st.image('https://www.erisyon.com/images/erisyon-logo-5d2e674c.svg')
     st.write('The sidebar is shared across tabs.'
-             'Click the X in the upper-right of the sidebar to close')
+             'Click the X in the upper-right of the sidebar to close'
+             'Until state management is figured out, press Regenerate All to stop the balloons')
     # n = st.number_input('Samples', min_value=10, value=100, step=100)
     # mu = st.number_input('Mu', value=10.)
     # std = st.number_input('Std dev', min_value=.01, value=2.)
@@ -33,10 +35,11 @@ with st.sidebar:
         st.session_state.do_once = 0
         st.write(st.session_state)
     if st.session_state.do_once == 0:
-        st.snow()
+        st.balloons()
         st.session_state.do_once = st.session_state.do_once + 1
         st.write('redoing', st.session_state.do_once)
         st.write(st.session_state)
+
 
 def gen_histogram():
     cols = st.columns(3)
@@ -211,13 +214,52 @@ def gen_tables():
     st.write(df)
 
 
+def gen_tables():
+    # Create a graphlib graph object
+    graph = graphviz.Digraph()
+    graph.edge('run', 'intr')
+    graph.edge('intr', 'runbl')
+    graph.edge('runbl', 'run')
+    graph.edge('run', 'kernel')
+    graph.edge('kernel', 'zombie')
+    graph.edge('kernel', 'sleep')
+    graph.edge('kernel', 'runmem')
+    graph.edge('sleep', 'swap')
+    graph.edge('swap', 'runswap')
+    graph.edge('runswap', 'new')
+    graph.edge('runswap', 'runmem')
+    graph.edge('new', 'runmem')
+    graph.edge('sleep', 'runmem')
+
+    st.graphviz_chart(graph)
+
+    st.graphviz_chart('''
+        digraph {
+            run -> intr
+            intr -> runbl
+            runbl -> run
+            run -> kernel
+            kernel -> zombie
+            kernel -> sleep
+            kernel -> runmem
+            sleep -> swap
+            swap -> runswap
+            runswap -> new
+            runswap -> runmem
+            new -> runmem
+            sleep -> runmem
+        }
+    ''')
+
+
 tabs = [("Histogram", gen_histogram),
         ("Random Image", gen_random_image),
         ("Math", gen_math),
         ("PSF", gen_psf),
         ("Vega", gen_vega_chart),
         ("Columns", gen_columns),
-        ("Tables", gen_tables)]
+        ("Tables", gen_tables),
+        ("Network", gen_network)]
 
 st_tabs = st.tabs([x[0] for x in tabs])
 
