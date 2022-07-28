@@ -67,6 +67,8 @@ def gen_histogram():
     i_p = norm.pdf(x, mu, std)
     f_p = norm.pdf(x, f_mu, f_std)
 
+    st.write('red = expected distribution')
+    st.write('black = distribution fitted to data')
     ax.plot(x, i_p, 'r')
     ax.plot(x, f_p, 'k')
 
