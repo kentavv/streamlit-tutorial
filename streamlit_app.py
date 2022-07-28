@@ -214,7 +214,7 @@ def gen_tables():
     st.write(df)
 
 
-def gen_tables():
+def gen_network():
     # Create a graphlib graph object
     graph = graphviz.Digraph()
     graph.edge('run', 'intr')
