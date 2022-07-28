@@ -1,5 +1,6 @@
 # 🤠🔬
 
+import os
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -252,6 +253,12 @@ def gen_network():
     ''')
 
 
+def gen_shell():
+    cmds = ['ls', 'pwd', 'df']
+    for cmd in cmds:
+        st.write(cmd, ':', os.popen(cmd).read())
+
+
 tabs = [("Histogram", gen_histogram),
         ("Random Image", gen_random_image),
         ("Math", gen_math),
@@ -259,7 +266,9 @@ tabs = [("Histogram", gen_histogram),
         ("Vega", gen_vega_chart),
         ("Columns", gen_columns),
         ("Tables", gen_tables),
-        ("Network", gen_network)]
+        ("Network", gen_network),
+        ("Shell", gen_shell),
+        ]
 
 st_tabs = st.tabs([x[0] for x in tabs])
 
