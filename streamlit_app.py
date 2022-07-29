@@ -60,17 +60,16 @@ def gen_histogram():
     f_mu, f_std = norm.fit(dat)
 
     fig, ax = plt.subplots()
-    ax.hist(dat, bins=20, density=True)
+    ax.hist(dat, bins=20, density=True, legend='samples')
 
     xmin, xmax = plt.xlim()
     x = np.linspace(xmin, xmax, 100)
     i_p = norm.pdf(x, mu, std)
     f_p = norm.pdf(x, f_mu, f_std)
 
-    st.write('red = expected distribution')
-    st.write('black = distribution fitted to data')
-    ax.plot(x, i_p, 'r')
-    ax.plot(x, f_p, 'k')
+    ax.plot(x, i_p, 'r', label='underlying')
+    ax.plot(x, f_p, 'k', label='observed')
+    ax.legend()
 
     st.pyplot(fig)
 
