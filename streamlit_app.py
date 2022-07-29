@@ -255,7 +255,7 @@ def gen_network():
 
 
 def gen_shell():
-    cmds = ['ls', 'pwd', 'df', 'ps -auxww']
+    cmds = ['ls', 'pwd', 'df', 'ps']
     for cmd in cmds:
         st.header(cmd)
         st.text(os.popen(cmd).read())
