@@ -46,6 +46,8 @@ def gen_histogram():
     cols = st.columns(3)
     with cols[0]:
         n = st.number_input('Samples', min_value=10, value=100, step=100)
+        # Streamlit does not always seem to constrain returned type correctly
+        n = max(int(n), 10)
     with cols[1]:
         mu = st.number_input('Mu', value=10.)
     with cols[2]:
@@ -255,7 +257,8 @@ def gen_network():
 
 
 def gen_shell():
-    cmds = ['ls', 'pwd', 'df', '/usr/bin/ps', '/bin/ps']
+    # Streamlit server has no ps, /bin/ps, /usr/bin/ps.
+    cmds = ['ls', 'pwd', 'df']
     for cmd in cmds:
         st.header(cmd)
         st.text(os.popen(cmd).read())
