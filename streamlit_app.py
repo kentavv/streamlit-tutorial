@@ -60,7 +60,7 @@ def gen_histogram():
     f_mu, f_std = norm.fit(dat)
 
     fig, ax = plt.subplots()
-    ax.hist(dat, bins=20, density=True, legend='samples')
+    ax.hist(dat, bins=20, density=True, label='samples')
 
     xmin, xmax = plt.xlim()
     x = np.linspace(xmin, xmax, 100)
