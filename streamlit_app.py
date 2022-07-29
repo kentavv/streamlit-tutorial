@@ -49,9 +49,9 @@ def gen_histogram():
         # Streamlit does not always seem to constrain returned type correctly
         n = max(int(n), 10)
     with cols[1]:
-        mu = st.number_input('Mu', value=10.)
+        mu = st.number_input('Mu', value=10., step=1.)
     with cols[2]:
-        std = st.number_input('Std dev', min_value=.01, value=2.)
+        std = st.number_input('Std dev', min_value=.01, value=2., step=1.)
     # with st.sidebar:
     #     n = st.number_input('Samples', min_value=10, value=100, step=100)
     #     mu = st.number_input('Mu', value=10.)
