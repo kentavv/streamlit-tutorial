@@ -10,7 +10,9 @@ pandas = "*"
 matplotlib = "*"
 streamlit = "*"
 graphviz = "*"
-python-graphviz = "*"
+
+#needed in conda, not otherwise available, not needed on online streamlit
+#python-graphviz = "*"
 
 
 [dev-packages]
