@@ -325,7 +325,7 @@ def gen_pycm():
                 pad=15,
                 thickness=20,
                 line=dict(color='black', width=0.5),
-                label=["True Neg", "True Pos", "Pred Neg", "Pred Pos"],
+                label=["Known False", "Known True", "Predicted False", "Predicted True"],
                 color=['#a6cee3', '#fb9a99', '#a6cee3', '#fb9a99'],
             ),
 
@@ -350,12 +350,17 @@ def gen_pycm():
     def plot_histogram():
         st.header('Histogram')
         st.write('True classification vs. model\'s score.')
-        st.write('Scores are compared to threshold to assign prediction.')
+        st.write('Scores are compared to threshold (the vertical black line) to assign prediction.')
+        st.write('Model will assign True to samples to the right of the threshold, and False to the samples to the left of the threshold.')
 
         fig_hist = px.histogram(
             x=y_score, color=y, nbins=50,
-            labels=dict(color='True Labels', x='Score')
+            labels=dict(color='True Labels', x='Model Score'),
+            histnorm = 'percent',
+            # cumulative=True
         )
+
+        fig_hist.add_vline(x=threshold)
 
         st.plotly_chart(fig_hist)
 
@@ -405,14 +410,52 @@ def gen_pycm():
 
         st.plotly_chart(fig)
 
+    def plot_roc_curve():
+        st.header('Receiver Operating Characteristic (ROC) Curve')
+
+        fpr, tpr, thresholds = roc_curve(y, y_score)
+
+        st.write(f'Area under curve (AUC) = {auc(fpr, tpr):.4f}')
+        st.write(f'PR Curve will change with ')
+
+        fig = px.area(
+            x=fpr, y=tpr,
+            title=f'ROC Curve (AUC={auc(fpr, tpr):.4f})',
+            labels=dict(x='False Positive Rate', y='True Positive Rate'),
+            width=700, height=500
+        )
+        fig.add_shape(
+            type='line', line=dict(dash='dash'),
+            x0=0, x1=1, y0=0, y1=1
+        )
+
+        fig.update_yaxes(scaleanchor="x", scaleratio=1)
+        fig.update_xaxes(constrain='domain')
+
+        st.plotly_chart(fig)
+
     def plot_cm():
         st.header('Confusion Matrix')
         st.write('Powered by PyCM')
 
-        st.write(cm.matrix)
+        # st.write(cm.matrix)
+
+        df = pd.DataFrame.from_dict(cm.matrix, orient='index')
+        # df[0] = df[0].astype(str)
+        # df[1] = df[1].astype(str)
+        df = df.rename(index={0: 'Known False', 1: 'Known True'}, columns={0: 'Predicted False', 1: 'Predicted True'})
+        st.dataframe(df)
+
+        # data = json.loads(cm.class_stat)
+        df = pd.DataFrame.from_dict(cm.class_stat, orient='index')
+        df[0] = df[0].astype(str)
+        df[1] = df[1].astype(str)
+        df = df.rename(columns={0: 'Predicted False', 1: 'Predicted True'})
+        st.dataframe(df)
 
         st.text(json.dumps(cm.overall_stat, sort_keys=True, indent=4))
-        st.text(json.dumps(cm.class_stat, sort_keys=True, indent=4))
+        # st.text(json.dumps(cm.class_stat, sort_keys=True, indent=4))
+
 
         # print(y_actu.shape, y_pred.shape)
         # print()
@@ -428,18 +471,18 @@ def gen_pycm():
         # cm.print_matrix()
         # cm.print_normalized_matrix()
 
-    tabs = st.tabs(['Sankey', 'Histogram', 'Threshold', 'PR Curve', 'CM'])
-    with tabs[0]:
-        plot_sankey()
-    with tabs[1]:
-        plot_histogram()
-    with tabs[2]:
-        plot_threshold_study()
-    with tabs[3]:
-        plot_pr_curve()
-    with tabs[4]:
-        plot_cm()
+    tabs = [('Sankey', plot_sankey),
+            ('Histogram', plot_histogram),
+            ('Threshold', plot_threshold_study),
+            ('ROC Curve', plot_roc_curve),
+            ('PR Curve', plot_pr_curve),
+            ('Conf. Mat.', plot_cm)]
+    st_tabs = st.tabs([x[0] for x in tabs])
 
+    for i, (tab_name, tab_f) in enumerate(tabs):
+        with st_tabs[i]:
+            # st.header(tab_name)
+            tab_f()
 
 # tabs = [
 #         ("PR Curves", gen_pycm),
