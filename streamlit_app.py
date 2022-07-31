@@ -11,7 +11,7 @@ from sklearn.metrics import precision_recall_curve, roc_curve, auc
 
 
 def gen_page():
-    global n, prng_n, threshold
+    global n, prng_n, threshold, p_class_err
 
     # st.set_page_config(layout="wide")
     st.set_page_config(layout="centered")
@@ -30,13 +30,15 @@ def gen_page():
         n = max(int(n), 10)
         prng_n = st.number_input('Random Seed', min_value=0, value=0, step=1)
         prng_n = max(int(prng_n), 0)
+        p_class_err = st.number_input('Probability of class error', min_value=0., max_value=1.00001, value=0.01, step=.05)
 
         threshold = st.number_input('Threshold', min_value=0., max_value=1.00001, value=.65, step=.05)
 
 
 def gen_pycm():
-    X, y = make_classification(n_samples=n, random_state=prng_n)
+    X, y = make_classification(n_samples=n, random_state=prng_n, flip_y=p_class_err)
 
+    # model = LogisticRegression(penalty='elasticnet', l1_ratio=l1_ratio, solver='saga')
     model = LogisticRegression()
     model.fit(X, y)
     y_score = model.predict_proba(X)[:, 1]
@@ -200,6 +202,7 @@ def gen_pycm():
     def plot_roc_curve():
         st.header('Receiver Operating Characteristic (ROC) Curve')
         st.write(f'Area under curve (AUC) = {auc(fpr, tpr):.4f}')
+        st.write(f'At selected threshold: False-Positive Rate: {fpr_x:.4f}; True-Positive Rate: {tpr_x:.4f}')
 
         fig = px.area(
             x=fpr, y=tpr,
@@ -232,7 +235,6 @@ def gen_pycm():
         st.write(f'The ROC graph summarizes confusion matrices for a given model for many threshold values.')
         st.write(f'The AUC is a single value summary FPR & TPR tested at many thresholds, and can be used to compare models and model parameters.')
         st.write(f'Find a threshold that maximizes the True-Positive Rate while minimizing the False-Positive to an acceptable level.')
-        st.write(f'At selected threshold: False-Positive Rate: {fpr_x:.4f}; True-Positive Rate: {tpr_x:.4f}')
         st.write(f'The diagonal line in the ROC curve is where True-Positive Rate = False-Positive Rate.')
 
     def plot_cm():
