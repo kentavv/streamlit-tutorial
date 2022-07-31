@@ -402,6 +402,13 @@ def gen_pycm():
         st.write(f'False Positive Rate: {fpr}; True Positive Rate: {tpr}')
         # st.write(f'PR Curve will change with ')
 
+        st.latex(r'\begin{align}'
+                 r'\textrm{Precision} &= \frac{\left( \textrm{True Positives} \right)}{\left( \textrm{True Positives} + \textrm{False Positives} \right)} \\'
+        r'\textrm{Recall} &= \frac{\left( \textrm{True Positives} \right)}{\left( \textrm{True Positives} + \textrm{False Negatives} \right)} \\'
+        r'\textrm{True Positive Rate} &= \textrm{Recall} \\'
+        r'\textrm{False Positive Rate} &= \frac{\left( \textrm{False Positives} \right)}{\left( \textrm{False Positives} + \textrm{True Negatives} \right)}'
+                 r'\end{align}')
+
         precision, recall, thresholds = precision_recall_curve(y, y_score)
         print(precision.shape)
         print(recall.shape)
