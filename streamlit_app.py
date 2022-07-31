@@ -354,9 +354,15 @@ def gen_pycm():
         st.write('Scores are compared to threshold (the vertical black line) to assign prediction.')
         st.write('Model will assign True to samples to the right of the threshold, and False to the samples to the left of the threshold.')
 
+        # Sort by the true class so histogram will assign colors to the classes consistently.
+        # Histogram seems to always assign colors by the order unique class labels are encountered.
+        df = pd.DataFrame({'y':y, 'y_score':y_score}).sort_values(['y', 'y_score'])
+        df['y'].replace({0: 'Known False', 1: 'Known True'}, inplace=True)
+
         fig_hist = px.histogram(
-            x=y_score, color=y, nbins=50,
-            labels={'color': 'True Labels', 'x': 'Model Score'},
+            x=df['y_score'], color=df['y'], nbins=50,
+            # labels={'color': 'True Labels', 'x': 'Model Score'},
+            labels={'color': '', 'x': 'Model Score'},
             histnorm = 'percent',
             # marginal="box",  # can be rug, `box`, `violin`
             # cumulative=True
