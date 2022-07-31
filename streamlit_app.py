@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import streamlit as st
 import scipy
 import graphviz as graphviz
+import pycm
 
 from scipy.special import jv
 from scipy.stats import norm
@@ -14,32 +15,38 @@ from scipy.stats import norm
 # st.set_page_config(layout="wide")
 st.set_page_config(layout="centered")
 
-st.title('Streamlit Experiments')
+# st.title('Streamlit Experiments')
+st.title('PR Curves Experiments')
+st.write('Powered by Streamlit, Plotly, PyCM')
+st.write('')
+st.write('')
+st.write('')
 
 with st.sidebar:
     st.image('https://www.erisyon.com/images/erisyon-logo-5d2e674c.svg')
-    st.write('The sidebar is shared across tabs.'
-             'Click the X in the upper-right of the sidebar to close'
-             'Until state management is figured out, press Regenerate All to stop the balloons')
+    # st.write('The sidebar is shared across tabs.')
+    # st.write('Click the X in the upper-right of the sidebar to close')
+    # 'Until state management is figured out, press Regenerate All to stop the balloons'
+    # )
     # n = st.number_input('Samples', min_value=10, value=100, step=100)
     # mu = st.number_input('Mu', value=10.)
     # std = st.number_input('Std dev', min_value=.01, value=2.)
 
-    with open('Pipfile') as f:
-        st.download_button("Download Pipfile", f, file_name='Pipfile')
-    with open('streamlit_app.py') as f:
-        st.download_button("Download Source", f, file_name='streamlit_app.py')
+    # with open('Pipfile') as f:
+    #     st.download_button("Download Pipfile", f, file_name='Pipfile')
+    # with open('streamlit_app.py') as f:
+    #     st.download_button("Download Source", f, file_name='streamlit_app.py')
+    #
+    # st.button("Regenerate All", key='Regenerate All')
 
-    st.button("Regenerate All", key='Regenerate All')
-
-    if "do_once" not in st.session_state:
-        st.session_state.do_once = 0
-        st.write(st.session_state)
-    if st.session_state.do_once == 0:
-        st.balloons()
-        st.session_state.do_once = st.session_state.do_once + 1
-        st.write('redoing', st.session_state.do_once)
-        st.write(st.session_state)
+    # if "do_once" not in st.session_state:
+    #     st.session_state.do_once = 0
+    #     st.write(st.session_state)
+    # if st.session_state.do_once == 0:
+    #     # st.balloons()
+    #     st.session_state.do_once = st.session_state.do_once + 1
+    #     st.write('redoing', st.session_state.do_once)
+    #     st.write(st.session_state)
 
 
 def gen_histogram():
@@ -264,20 +271,194 @@ def gen_shell():
         st.text(os.popen(cmd).read())
 
 
-tabs = [("Histogram", gen_histogram),
-        ("Random Image", gen_random_image),
-        ("Math", gen_math),
-        ("PSF", gen_psf),
-        ("Vega", gen_vega_chart),
-        ("Columns", gen_columns),
-        ("Tables", gen_tables),
-        ("Network", gen_network),
-        ("Shell", gen_shell),
-        ]
+def gen_pycm():
+    import plotly.express as px
+    import pandas as pd
+    from sklearn.linear_model import LogisticRegression
+    from sklearn.datasets import make_classification
+    from sklearn.metrics import precision_recall_curve, roc_curve, auc
+    import json
 
-st_tabs = st.tabs([x[0] for x in tabs])
+    st.write('Select size of two-class population to generate and classify. '
+             'Threshold value changes continuous model score to binary prediction with varying P&R.')
+    cols = st.columns(2)
+    with cols[0]:
+        n = st.number_input('Samples', min_value=10, value=100000, step=10000)
+        n = max(int(n), 10)
+    with cols[1]:
+        threshold = st.number_input('Threshold', min_value=0., max_value=1., value=.65, step=.05)
+    st.button("Regenerate", key='Regenerate')
 
-for i, (tab_name, tab_f) in enumerate(tabs):
-    with st_tabs[i]:
-        st.header(tab_name)
-        tab_f()
+    st.write('')
+    st.write('')
+    st.write('')
+
+    X, y = make_classification(n_samples=n) #, random_state=0)
+
+    model = LogisticRegression()
+    model.fit(X, y)
+    y_score = model.predict_proba(X)[:, 1]
+    fpr, tpr, thresholds = roc_curve(y, y_score)
+
+    y_actu = y
+    y_pred = ((y_score > threshold) * 1).astype(np.int)
+
+    cm = pycm.ConfusionMatrix(y_actu, y_pred, digit=5)
+
+    cm2 = cm.matrix
+
+    # 0 is false, 1 is true
+    source = [0, 0, 1, 1]
+    # 2 is false, 3 is true
+    target = [2, 3, 2, 3]
+    # uniform
+    value = [cm2[0][0], cm2[0][1], cm2[1][0], cm2[1][1]]
+
+    def plot_sankey():
+        st.header('Sankey Plot')
+        st.write('Shows known samples classes (left side) flows through the model to form predictions (right side)')
+
+        import plotly.graph_objects as go
+
+        data = go.Sankey(
+            node=dict(
+                pad=15,
+                thickness=20,
+                line=dict(color='black', width=0.5),
+                label=["True Neg", "True Pos", "Pred Neg", "Pred Pos"],
+                color=['#a6cee3', '#fb9a99', '#a6cee3', '#fb9a99'],
+            ),
+
+            link=dict(source=source,
+                      target=target,
+                      value=value,
+                      color=['#a6cee3', '#fb9a99', '#a6cee3', '#fb9a99']
+                      )
+        )
+
+        fig = go.Figure(data)
+        # fig.update_layout(title_text="Basic Sankey Diagram", font_size=10)
+
+        # fig.update_layout(
+        #     hovermode='x',
+        #     title="Sankey Chart",
+        #     font=dict(size=10, color='white'),
+        # )
+
+        st.plotly_chart(fig)
+
+    def plot_histogram():
+        st.header('Histogram')
+        st.write('True classification vs. model\'s score.')
+        st.write('Scores are compared to threshold to assign prediction.')
+
+        fig_hist = px.histogram(
+            x=y_score, color=y, nbins=50,
+            labels=dict(color='True Labels', x='Score')
+        )
+
+        st.plotly_chart(fig_hist)
+
+    def plot_threshold_study():
+        st.header('Threshold Study')
+        st.write('Threshold study of True-Positive-Rate and False-Positive-Rate.')
+
+        df = pd.DataFrame({
+            'False Positive Rate': fpr,
+            'True Positive Rate': tpr
+        }, index=thresholds)
+        df.index.name = "Threshold"
+        df.columns.name = "Rate"
+
+        fig_thresh = px.line(
+            df,
+            # title='TPR and FPR at every threshold',
+            width=700, height=500
+        )
+
+        fig_thresh.update_yaxes(scaleanchor="x", scaleratio=1)
+        fig_thresh.update_xaxes(range=[0, 1], constrain='domain')
+
+        fig_thresh.add_vline(x=threshold)
+
+        st.plotly_chart(fig_thresh)
+
+    def plot_pr_curve():
+        st.header('Precision-Recall Curve')
+        st.write(f'Area under curve (AUC) = {auc(fpr, tpr):.4f}')
+        st.write(f'PR Curve will change with ')
+
+        precision, recall, thresholds = precision_recall_curve(y, y_score)
+
+        fig = px.area(
+            x=recall, y=precision,
+            # title=f'Precision-Recall Curve (AUC={auc(fpr, tpr):.4f})',
+            labels=dict(x='Recall', y='Precision'),
+            width=700, height=500
+        )
+        fig.add_shape(
+            type='line', line=dict(dash='dash'),
+            x0=0, x1=1, y0=1, y1=0
+        )
+        fig.update_yaxes(scaleanchor="x", scaleratio=1)
+        fig.update_xaxes(constrain='domain')
+
+        st.plotly_chart(fig)
+
+    def plot_cm():
+        st.header('Confusion Matrix')
+        st.write('Powered by PyCM')
+
+        st.write(cm.matrix)
+
+        st.text(json.dumps(cm.overall_stat, sort_keys=True, indent=4))
+        st.text(json.dumps(cm.class_stat, sort_keys=True, indent=4))
+
+        # print(y_actu.shape, y_pred.shape)
+        # print()
+        # print(X)
+        # print()
+        # print(y)
+        # print()
+        # print(y_score)
+        # print()
+        # print(y_pred)
+        # print()
+        # # st.text(cm.overall_stat)
+        # cm.print_matrix()
+        # cm.print_normalized_matrix()
+
+    tabs = st.tabs(['Sankey', 'Histogram', 'Threshold', 'PR Curve', 'CM'])
+    with tabs[0]:
+        plot_sankey()
+    with tabs[1]:
+        plot_histogram()
+    with tabs[2]:
+        plot_threshold_study()
+    with tabs[3]:
+        plot_pr_curve()
+    with tabs[4]:
+        plot_cm()
+
+
+# tabs = [
+#         ("PR Curves", gen_pycm),
+#         # ("Histogram", gen_histogram),
+#         # ("Random Image", gen_random_image),
+#         # ("Math", gen_math),
+#         # ("PSF", gen_psf),
+#         # ("Vega-Lite", gen_vega_chart),
+#         # ("Columns", gen_columns),
+#         # ("Tables", gen_tables),
+#         # ("Network", gen_network),
+#         # ("Shell", gen_shell)
+#     ]
+#
+# st_tabs = st.tabs([x[0] for x in tabs])
+#
+# for i, (tab_name, tab_f) in enumerate(tabs):
+#     with st_tabs[i]:
+#         st.header(tab_name)
+#         tab_f()
+
+gen_pycm()
