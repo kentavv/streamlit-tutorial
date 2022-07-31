@@ -237,7 +237,6 @@ def gen_pycm():
 
     def plot_cm():
         st.header('Confusion Matrix')
-        st.write('Powered by PyCM')
 
         # st.write(cm.matrix)
 
