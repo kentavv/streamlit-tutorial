@@ -301,7 +301,7 @@ def gen_pycm():
     fpr, tpr, thresholds = roc_curve(y, y_score)
 
     y_actu = y
-    y_pred = ((y_score > threshold) * 1).astype(np.int)
+    y_pred = ((y_score > threshold) * 1).astype(int)
 
     cm = pycm.ConfusionMatrix(y_actu, y_pred, digit=5)
 
