@@ -17,13 +17,11 @@ st.set_page_config(layout="centered")
 
 # st.title('Streamlit Experiments')
 st.title('PR Curves Experiments')
-st.write('Powered by Streamlit, Plotly, PyCM')
-st.write('')
-st.write('')
 st.write('')
 
 with st.sidebar:
     st.image('https://www.erisyon.com/images/erisyon-logo-5d2e674c.svg')
+    st.caption('This app powered by Streamlit, Plotly, PyCM')
     # st.write('The sidebar is shared across tabs.')
     # st.write('Click the X in the upper-right of the sidebar to close')
     # 'Until state management is figured out, press Regenerate All to stop the balloons'
@@ -310,6 +308,7 @@ def gen_pycm():
     # fpr_x = np.interp(threshold, np.flipud(thresholds), np.flipud(fpr))
     # tpr_x = np.interp(threshold, np.flipud(thresholds), np.flipud(tpr))
     fpr_x, tpr_x = cm.FPR[1], cm.TPR[1]
+    precision_x, recall_x = cm.PPV[1], cm.TPR[1]
 
     cm2 = cm.matrix
 
@@ -403,17 +402,19 @@ def gen_pycm():
 
         st.plotly_chart(fig)
 
+        st.latex(r'\begin{align*}'
+                 r'\textrm{True Positive Rate} &= \frac{\left( \textrm{True Positives} \right)}{\left( \textrm{True Positives} + \textrm{False Negatives} \right)} \\'
+                 r'&= \textrm{Recall} \\'
+                 r'&= \textrm{Sensitivity} \\'
+                 r'\textrm{False Positive Rate} &= \frac{\left( \textrm{False Positives} \right)}{\left( \textrm{False Positives} + \textrm{True Negatives} \right)} \\'
+                 r'&= 1 - \textrm{Specificity}'
+                 r'\end{align*}')
+
     def plot_pr_curve():
         st.header('Precision-Recall (PR) Curve')
         st.write(f'Area under curve (AUC) = {auc(fpr, tpr):.4f}')
-        st.write(f'At selected threshold: False-Positive Rate: {fpr_x:.4f}; True-Positive Rate: {tpr_x:.4f}')
-
-        st.latex(r'\begin{align*}'
-                 r'\textrm{Precision} &= \frac{\left( \textrm{True Positives} \right)}{\left( \textrm{True Positives} + \textrm{False Positives} \right)} \\'
-                 r'\textrm{Recall} &= \frac{\left( \textrm{True Positives} \right)}{\left( \textrm{True Positives} + \textrm{False Negatives} \right)} \\'
-                 r'\textrm{True Positive Rate} &= \textrm{Recall} \\'
-                 r'\textrm{False Positive Rate} &= \frac{\left( \textrm{False Positives} \right)}{\left( \textrm{False Positives} + \textrm{True Negatives} \right)}'
-                 r'\end{align*}')
+        # st.write(f'At selected threshold: False-Positive Rate: {fpr_x:.4f}; True-Positive Rate: {tpr_x:.4f}')
+        st.write(f'At selected threshold: Precision: {precision_x:.4f}; Recall: {recall_x:.4f}')
 
         precision, recall, thresholds = precision_recall_curve(y, y_score)
 
@@ -430,12 +431,36 @@ def gen_pycm():
         fig.update_yaxes(scaleanchor="x", scaleratio=1)
         fig.update_xaxes(constrain='domain')
 
+        fig.add_annotation(dict(font=dict(color='rgba(0,0,0,0.8)', size=12),
+                                x=recall_x,
+                                # x = xStart
+                                y=precision_x,
+                                showarrow=True,
+                                text=f'Threshold = {threshold:.2f}',
+                                # ax = -10,
+                                textangle=0,
+                                xanchor='right',
+                                xref="x",
+                                yref="y"))
+
         st.plotly_chart(fig)
+
+        st.write(f'The diagonal line in the PR curve is where Precision = Recall.')
+        st.write(f'Use a PR Curve when: 1) there is a large imbalance in the dataset since Precision and '
+                 'Recall do not depend on True Negatives; or 2) where True Negatives are not a signficant '
+                 'concern to the problem objective ')
+
+        st.latex(r'\begin{align*}'
+                 r'\textrm{Precision} &= \frac{\left( \textrm{True Positives} \right)}{\left( \textrm{True Positives} + \textrm{False Positives} \right)} \\'
+                 r'\textrm{Recall} &= \frac{\left( \textrm{True Positives} \right)}{\left( \textrm{True Positives} + \textrm{False Negatives} \right)} \\'
+                 r'\textrm{True Positive Rate} &= \textrm{Recall} \\'
+                 r'\textrm{True Positive Rate} &= \textrm{Sensitivity} \\'
+                 r'\textrm{False Positive Rate} &= \frac{\left( \textrm{False Positives} \right)}{\left( \textrm{False Positives} + \textrm{True Negatives} \right)}'
+                 r'\end{align*}')
 
     def plot_roc_curve():
         st.header('Receiver Operating Characteristic (ROC) Curve')
         st.write(f'Area under curve (AUC) = {auc(fpr, tpr):.4f}')
-        st.write(f'At selected threshold: False-Positive Rate: {fpr_x:.4f}; True-Positive Rate: {tpr_x:.4f}')
 
         fig = px.area(
             x=fpr, y=tpr,
@@ -448,10 +473,28 @@ def gen_pycm():
             x0=0, x1=1, y0=0, y1=1
         )
 
+        fig.add_annotation(dict(font=dict(color='rgba(0,0,0,0.8)', size=12),
+                                x=fpr_x,
+                                # x = xStart
+                                y=tpr_x,
+                                showarrow=True,
+                                text=f'Threshold = {threshold:.2f}',
+                                # ax = -10,
+                                textangle=0,
+                                xanchor='left',
+                                xref="x",
+                                yref="y"))
+
         fig.update_yaxes(scaleanchor="x", scaleratio=1)
         fig.update_xaxes(constrain='domain')
 
         st.plotly_chart(fig)
+
+        st.write(f'The ROC graph summarizes confusion matrices for a given model for many threshold values.')
+        st.write(f'The AUC is a single value summary FPR & TPR tested at many thresholds, and can be used to compare models and model parameters.')
+        st.write(f'Find a threshold that maximizes the True-Positive Rate while minimizing the False-Positive to an acceptable level.')
+        st.write(f'At selected threshold: False-Positive Rate: {fpr_x:.4f}; True-Positive Rate: {tpr_x:.4f}')
+        st.write(f'The diagonal line in the ROC curve is where True-Positive Rate = False-Positive Rate.')
 
     def plot_cm():
         st.header('Confusion Matrix')
