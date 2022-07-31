@@ -280,13 +280,13 @@ def gen_pycm():
     import json
 
     st.write('Select size of two-class population to generate and classify. '
-             'Threshold value changes continuous model score to binary prediction with varying P&R.')
+             'Threshold value changes continuous model score to binary prediction with varying Precision and Recall.')
     cols = st.columns(2)
     with cols[0]:
         n = st.number_input('Samples', min_value=10, value=100000, step=10000)
         n = max(int(n), 10)
     with cols[1]:
-        threshold = st.number_input('Threshold', min_value=0., max_value=1., value=.65, step=.05)
+        threshold = st.number_input('Threshold', min_value=0., max_value=1.00001, value=.65, step=.05)
     st.button("Regenerate", key='Regenerate')
 
     st.write('')
@@ -298,10 +298,11 @@ def gen_pycm():
     model = LogisticRegression()
     model.fit(X, y)
     y_score = model.predict_proba(X)[:, 1]
-    fpr, tpr, thresholds = roc_curve(y, y_score)
 
     y_actu = y
     y_pred = ((y_score > threshold) * 1).astype(int)
+
+    fpr, tpr, thresholds = roc_curve(y, y_score)
 
     cm = pycm.ConfusionMatrix(y_actu, y_pred, digit=5)
 
@@ -355,8 +356,9 @@ def gen_pycm():
 
         fig_hist = px.histogram(
             x=y_score, color=y, nbins=50,
-            labels=dict(color='True Labels', x='Model Score'),
+            labels={'color': 'True Labels', 'x': 'Model Score'},
             histnorm = 'percent',
+            # marginal="box",  # can be rug, `box`, `violin`
             # cumulative=True
         )
 
@@ -391,14 +393,18 @@ def gen_pycm():
     def plot_pr_curve():
         st.header('Precision-Recall Curve')
         st.write(f'Area under curve (AUC) = {auc(fpr, tpr):.4f}')
-        st.write(f'PR Curve will change with ')
+        st.write(f'False Positive Rate: {fpr}; True Positive Rate: {tpr}')
+        # st.write(f'PR Curve will change with ')
 
         precision, recall, thresholds = precision_recall_curve(y, y_score)
+        print(precision.shape)
+        print(recall.shape)
+        print(thresholds.shape)
 
         fig = px.area(
             x=recall, y=precision,
             # title=f'Precision-Recall Curve (AUC={auc(fpr, tpr):.4f})',
-            labels=dict(x='Recall', y='Precision'),
+            labels={'x': 'Recall', 'y': 'Precision'},
             width=700, height=500
         )
         fig.add_shape(
@@ -413,15 +419,16 @@ def gen_pycm():
     def plot_roc_curve():
         st.header('Receiver Operating Characteristic (ROC) Curve')
 
-        fpr, tpr, thresholds = roc_curve(y, y_score)
+        # fpr, tpr, thresholds = roc_curve(y, y_score)
 
         st.write(f'Area under curve (AUC) = {auc(fpr, tpr):.4f}')
-        st.write(f'PR Curve will change with ')
+        st.write(f'False Positive Rate: {fpr}; True Positive Rate: {tpr}')
+        # st.write(f'ROC Curve will change with ')
 
         fig = px.area(
             x=fpr, y=tpr,
             title=f'ROC Curve (AUC={auc(fpr, tpr):.4f})',
-            labels=dict(x='False Positive Rate', y='True Positive Rate'),
+            labels={'x':'False Positive Rate', 'y':'True Positive Rate'},
             width=700, height=500
         )
         fig.add_shape(
