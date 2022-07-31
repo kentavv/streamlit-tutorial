@@ -365,20 +365,18 @@ def gen_pycm():
         df = pd.DataFrame({'y': y, 'y_score': y_score}).sort_values(['y', 'y_score'])
         df['y'].replace({0: 'Known False', 1: 'Known True'}, inplace=True)
 
-        fig_hist = px.histogram(
-
+        fig = px.histogram(
             x=df['y_score'], color=df['y'], nbins=50,
             # labels={'color': 'True Labels', 'x': 'Model Score'},
             labels={'color': '', 'x': 'Model Score'},
             histnorm='percent',
             # marginal="box",  # can be rug, `box`, `violin`
             # cumulative=True
-
         )
 
-        fig_hist.add_vline(x=threshold)
+        fig.add_vline(x=threshold)
 
-        st.plotly_chart(fig_hist)
+        st.plotly_chart(fig)
 
     def plot_threshold_study():
         st.header('Threshold Study')
@@ -406,7 +404,7 @@ def gen_pycm():
         st.plotly_chart(fig)
 
     def plot_pr_curve():
-        st.header('Precision-Recall Curve')
+        st.header('Precision-Recall (PR) Curve')
         st.write(f'Area under curve (AUC) = {auc(fpr, tpr):.4f}')
         st.write(f'At selected threshold: False-Positive Rate: {fpr_x:.4f}; True-Positive Rate: {tpr_x:.4f}')
 
