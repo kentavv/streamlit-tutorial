@@ -280,31 +280,32 @@ def gen_pycm():
     import json
 
     st.write('Select size of two-class population to generate and classify. '
-             'Threshold value changes continuous model score to binary prediction with varying Precision and Recall.')
+             'Threshold value changes continuous model score to binary prediction with varying Precision and Recall. '
+             'Change the Random Seed to generate a new population.')
     cols = st.columns(2)
     with cols[0]:
         n = st.number_input('Samples', min_value=10, value=100000, step=10000)
         n = max(int(n), 10)
+        prng_n = st.number_input('Random Seed', min_value=0, value=0, step=1)
+        prng_n = max(int(prng_n), 0)
     with cols[1]:
         threshold = st.number_input('Threshold', min_value=0., max_value=1.00001, value=.65, step=.05)
-    st.button("Regenerate", key='Regenerate')
+    # st.button("Regenerate", key='Regenerate')
 
     st.write('')
     st.write('')
     st.write('')
 
-    X, y = make_classification(n_samples=n) #, random_state=0)
+    X, y = make_classification(n_samples=n, random_state=prng_n)
 
     model = LogisticRegression()
     model.fit(X, y)
     y_score = model.predict_proba(X)[:, 1]
 
-    y_actu = y
-    y_pred = ((y_score > threshold) * 1).astype(int)
-
     fpr, tpr, thresholds = roc_curve(y, y_score)
 
-    cm = pycm.ConfusionMatrix(y_actu, y_pred, digit=5)
+    y_pred = ((y_score > threshold) * 1).astype(int)
+    cm = pycm.ConfusionMatrix(y, y_pred, digit=5)
 
     cm2 = cm.matrix
 
@@ -374,7 +375,11 @@ def gen_pycm():
 
     def plot_threshold_study():
         st.header('Threshold Study')
-        st.write('Threshold study of True-Positive-Rate and False-Positive-Rate.')
+        st.write('Threshold study of True-Positive Rate and False-Positive Rate.')
+        print(threshold, thresholds, fpr)
+        fpr_x = np.interp(threshold, np.flipud(thresholds), np.flipud(fpr))
+        tpr_x = np.interp(threshold, np.flipud(thresholds), np.flipud(tpr))
+        st.write(f'At selected threshold: False-Positive Rate: {fpr_x:.4f}; True-Positive Rate: {tpr_x:.4f}')
 
         df = pd.DataFrame({
             'False Positive Rate': fpr,
