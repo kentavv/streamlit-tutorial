@@ -190,8 +190,8 @@ def gen_pycm():
 
         st.write(f'The diagonal line in the PR curve is where Precision = Recall.')
         st.write(f'Use a PR Curve when: 1) there is a large imbalance in the dataset since Precision and '
-                 'Recall do not depend on True Negatives; or 2) where True Negatives are not a signficant '
-                 'concern to the problem objective ')
+                 'Recall do not depend on True Negatives; or 2) where True Negatives are not a significant '
+                 'concern to the problem objective, e.g., where maximization of True Positives is needed.')
 
         st.latex(r'\begin{align*}'
                  r'\textrm{Precision} &= \frac{\left( \textrm{True Positives} \right)}{\left( \textrm{True Positives} + \textrm{False Positives} \right)} \\'
