@@ -307,6 +307,10 @@ def gen_pycm():
     y_pred = ((y_score > threshold) * 1).astype(int)
     cm = pycm.ConfusionMatrix(y, y_pred, digit=5)
 
+    # fpr_x = np.interp(threshold, np.flipud(thresholds), np.flipud(fpr))
+    # tpr_x = np.interp(threshold, np.flipud(thresholds), np.flipud(tpr))
+    fpr_x, tpr_x = cm.FPR[1], cm.TPR[1]
+
     cm2 = cm.matrix
 
     # 0 is false, 1 is true
@@ -379,11 +383,6 @@ def gen_pycm():
     def plot_threshold_study():
         st.header('Threshold Study')
         st.write('Threshold study of True-Positive Rate and False-Positive Rate.')
-
-        # TODO Get these from cm
-        fpr_x = np.interp(threshold, np.flipud(thresholds), np.flipud(fpr))
-        tpr_x = np.interp(threshold, np.flipud(thresholds), np.flipud(tpr))
-
         st.write(f'At selected threshold: False-Positive Rate: {fpr_x:.4f}; True-Positive Rate: {tpr_x:.4f}')
 
         df = pd.DataFrame({
@@ -409,8 +408,7 @@ def gen_pycm():
     def plot_pr_curve():
         st.header('Precision-Recall Curve')
         st.write(f'Area under curve (AUC) = {auc(fpr, tpr):.4f}')
-        st.write(f'False Positive Rate: {fpr}; True Positive Rate: {tpr}')
-        # st.write(f'PR Curve will change with ')
+        st.write(f'At selected threshold: False-Positive Rate: {fpr_x:.4f}; True-Positive Rate: {tpr_x:.4f}')
 
         st.latex(r'\begin{align*}'
                  r'\textrm{Precision} &= \frac{\left( \textrm{True Positives} \right)}{\left( \textrm{True Positives} + \textrm{False Positives} \right)} \\'
@@ -420,9 +418,6 @@ def gen_pycm():
                  r'\end{align*}')
 
         precision, recall, thresholds = precision_recall_curve(y, y_score)
-        print(precision.shape)
-        print(recall.shape)
-        print(thresholds.shape)
 
         fig = px.area(
             x=recall, y=precision,
@@ -441,12 +436,8 @@ def gen_pycm():
 
     def plot_roc_curve():
         st.header('Receiver Operating Characteristic (ROC) Curve')
-
-        # fpr, tpr, thresholds = roc_curve(y, y_score)
-
         st.write(f'Area under curve (AUC) = {auc(fpr, tpr):.4f}')
-        st.write(f'False Positive Rate: {fpr}; True Positive Rate: {tpr}')
-        # st.write(f'ROC Curve will change with ')
+        st.write(f'At selected threshold: False-Positive Rate: {fpr_x:.4f}; True-Positive Rate: {tpr_x:.4f}')
 
         fig = px.area(
             x=fpr, y=tpr,
@@ -471,12 +462,9 @@ def gen_pycm():
         # st.write(cm.matrix)
 
         df = pd.DataFrame.from_dict(cm.matrix, orient='index')
-        # df[0] = df[0].astype(str)
-        # df[1] = df[1].astype(str)
         df = df.rename(index={0: 'Known False', 1: 'Known True'}, columns={0: 'Predicted False', 1: 'Predicted True'})
         st.dataframe(df)
 
-        # data = json.loads(cm.class_stat)
         df = pd.DataFrame.from_dict(cm.class_stat, orient='index')
         df[0] = df[0].astype(str)
         df[1] = df[1].astype(str)
@@ -484,21 +472,6 @@ def gen_pycm():
         st.dataframe(df)
 
         st.text(json.dumps(cm.overall_stat, sort_keys=True, indent=4))
-        # st.text(json.dumps(cm.class_stat, sort_keys=True, indent=4))
-
-        # print(y_actu.shape, y_pred.shape)
-        # print()
-        # print(X)
-        # print()
-        # print(y)
-        # print()
-        # print(y_score)
-        # print()
-        # print(y_pred)
-        # print()
-        # # st.text(cm.overall_stat)
-        # cm.print_matrix()
-        # cm.print_normalized_matrix()
 
     tabs = [('Sankey', plot_sankey),
             ('Histogram', plot_histogram),
@@ -510,7 +483,6 @@ def gen_pycm():
 
     for i, (tab_name, tab_f) in enumerate(tabs):
         with st_tabs[i]:
-            # st.header(tab_name)
             tab_f()
 
 
