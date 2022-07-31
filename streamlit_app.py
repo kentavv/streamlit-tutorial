@@ -318,7 +318,7 @@ def gen_pycm():
 
     def plot_sankey():
         st.header('Sankey Plot')
-        st.write('Shows known samples classes (left side) flows through the model to form predictions (right side)')
+        st.write('Through the model, known class samples (left side) are assigned to predicted classes (right side).')
 
         import plotly.graph_objects as go
 
@@ -351,22 +351,25 @@ def gen_pycm():
 
     def plot_histogram():
         st.header('Histogram')
-        st.write('True classification vs. model\'s score.')
-        st.write('Scores are compared to threshold (the vertical black line) to assign prediction.')
-        st.write('Model will assign True to samples to the right of the threshold, and False to the samples to the left of the threshold.')
+        st.write('The model has assigned a score to each sample in the population. '
+                 'The histogram shows the distribution of scores for False and True classes.')
+        st.write('Scores are compared to the threshold (vertical black line) to assign a two-class prediction. '
+                 'Samples to the right of the threshold are assigned to class True, and otherwise are assigned to class False.')
 
         # Sort by the true class so histogram will assign colors to the classes consistently.
         # Histogram seems to always assign colors by the order unique class labels are encountered.
-        df = pd.DataFrame({'y':y, 'y_score':y_score}).sort_values(['y', 'y_score'])
+        df = pd.DataFrame({'y': y, 'y_score': y_score}).sort_values(['y', 'y_score'])
         df['y'].replace({0: 'Known False', 1: 'Known True'}, inplace=True)
 
         fig_hist = px.histogram(
+
             x=df['y_score'], color=df['y'], nbins=50,
             # labels={'color': 'True Labels', 'x': 'Model Score'},
             labels={'color': '', 'x': 'Model Score'},
-            histnorm = 'percent',
+            histnorm='percent',
             # marginal="box",  # can be rug, `box`, `violin`
             # cumulative=True
+
         )
 
         fig_hist.add_vline(x=threshold)
@@ -376,9 +379,11 @@ def gen_pycm():
     def plot_threshold_study():
         st.header('Threshold Study')
         st.write('Threshold study of True-Positive Rate and False-Positive Rate.')
-        print(threshold, thresholds, fpr)
+
+        # TODO Get these from cm
         fpr_x = np.interp(threshold, np.flipud(thresholds), np.flipud(fpr))
         tpr_x = np.interp(threshold, np.flipud(thresholds), np.flipud(tpr))
+
         st.write(f'At selected threshold: False-Positive Rate: {fpr_x:.4f}; True-Positive Rate: {tpr_x:.4f}')
 
         df = pd.DataFrame({
@@ -388,18 +393,18 @@ def gen_pycm():
         df.index.name = "Threshold"
         df.columns.name = "Rate"
 
-        fig_thresh = px.line(
+        fig = px.line(
             df,
             # title='TPR and FPR at every threshold',
             width=700, height=500
         )
 
-        fig_thresh.update_yaxes(scaleanchor="x", scaleratio=1)
-        fig_thresh.update_xaxes(range=[0, 1], constrain='domain')
+        fig.update_yaxes(scaleanchor="x", scaleratio=1)
+        fig.update_xaxes(range=[0, 1], constrain='domain')
 
-        fig_thresh.add_vline(x=threshold)
+        fig.add_vline(x=threshold)
 
-        st.plotly_chart(fig_thresh)
+        st.plotly_chart(fig)
 
     def plot_pr_curve():
         st.header('Precision-Recall Curve')
@@ -407,12 +412,12 @@ def gen_pycm():
         st.write(f'False Positive Rate: {fpr}; True Positive Rate: {tpr}')
         # st.write(f'PR Curve will change with ')
 
-        st.latex(r'\begin{align}'
+        st.latex(r'\begin{align*}'
                  r'\textrm{Precision} &= \frac{\left( \textrm{True Positives} \right)}{\left( \textrm{True Positives} + \textrm{False Positives} \right)} \\'
-        r'\textrm{Recall} &= \frac{\left( \textrm{True Positives} \right)}{\left( \textrm{True Positives} + \textrm{False Negatives} \right)} \\'
-        r'\textrm{True Positive Rate} &= \textrm{Recall} \\'
-        r'\textrm{False Positive Rate} &= \frac{\left( \textrm{False Positives} \right)}{\left( \textrm{False Positives} + \textrm{True Negatives} \right)}'
-                 r'\end{align}')
+                 r'\textrm{Recall} &= \frac{\left( \textrm{True Positives} \right)}{\left( \textrm{True Positives} + \textrm{False Negatives} \right)} \\'
+                 r'\textrm{True Positive Rate} &= \textrm{Recall} \\'
+                 r'\textrm{False Positive Rate} &= \frac{\left( \textrm{False Positives} \right)}{\left( \textrm{False Positives} + \textrm{True Negatives} \right)}'
+                 r'\end{align*}')
 
         precision, recall, thresholds = precision_recall_curve(y, y_score)
         print(precision.shape)
@@ -446,7 +451,7 @@ def gen_pycm():
         fig = px.area(
             x=fpr, y=tpr,
             title=f'ROC Curve (AUC={auc(fpr, tpr):.4f})',
-            labels={'x':'False Positive Rate', 'y':'True Positive Rate'},
+            labels={'x': 'False Positive Rate', 'y': 'True Positive Rate'},
             width=700, height=500
         )
         fig.add_shape(
@@ -481,7 +486,6 @@ def gen_pycm():
         st.text(json.dumps(cm.overall_stat, sort_keys=True, indent=4))
         # st.text(json.dumps(cm.class_stat, sort_keys=True, indent=4))
 
-
         # print(y_actu.shape, y_pred.shape)
         # print()
         # print(X)
@@ -508,6 +512,7 @@ def gen_pycm():
         with st_tabs[i]:
             # st.header(tab_name)
             tab_f()
+
 
 # tabs = [
 #         ("PR Curves", gen_pycm),
