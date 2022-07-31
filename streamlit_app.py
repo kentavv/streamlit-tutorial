@@ -23,7 +23,9 @@ def gen_page():
         st.caption('This app powered by Streamlit, Plotly, PyCM')
 
         st.write('Select size of two-class population to generate and classify. '
-                 'Threshold value changes continuous model score to binary prediction with varying Precision and Recall. '
+                 'Threshold value is used to change continuous model scores to binary class predictions. '
+                 'ROC and PR curves summarize the performance of the model for all threshold values. '
+                 'Performance of the model for a specific threshold is derived from the confusion matrix. '
                  'Change the Random Seed to generate a new population.')
 
         n = st.number_input('Samples', min_value=10, value=100000, step=10000)
