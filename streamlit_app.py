@@ -157,7 +157,10 @@ def gen_pycm():
         st.header('Precision-Recall (PR) Curve')
         st.write(f'Area under curve (AUC) = {auc(fpr, tpr):.4f}')
         # st.write(f'At selected threshold: False-Positive Rate: {fpr_x:.4f}; True-Positive Rate: {tpr_x:.4f}')
-        st.write(f'At selected threshold: Precision: {precision_x:.4f}; Recall: {recall_x:.4f}')
+        try:
+            st.write(f'At selected threshold: Precision: {precision_x:.4f}; Recall: {recall_x:.4f}')
+        else:
+            st.write(f'At selected threshold: Precision: ----; Recall: ----')
 
         precision, recall, thresholds = precision_recall_curve(y, y_score)
 
