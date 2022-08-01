@@ -159,7 +159,7 @@ def gen_pycm():
         # st.write(f'At selected threshold: False-Positive Rate: {fpr_x:.4f}; True-Positive Rate: {tpr_x:.4f}')
         try:
             st.write(f'At selected threshold: Precision: {precision_x:.4f}; Recall: {recall_x:.4f}')
-        else:
+        except ValueError:
             st.write(f'At selected threshold: Precision: ----; Recall: ----')
 
         precision, recall, thresholds = precision_recall_curve(y, y_score)
